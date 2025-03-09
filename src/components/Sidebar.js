@@ -12,12 +12,14 @@ import {
   Gear,
   Info,
   SignOut,
+  List,
 } from "@phosphor-icons/react";
 
 const Sidebar = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const navigate = useNavigate();
-  const fullName = localStorage.getItem('fullName') || 'User';
+  const fullName = localStorage.getItem("fullName") || "User";
 
   const handleLogout = () => {
     navigate("/login");
@@ -77,6 +79,17 @@ const Sidebar = () => {
   return (
     <section className="bg-solidWhite py-10 duration-300 flex h-screen w-[15.125rem]">
       <div className="flex flex-col justify-between">
+        {/* Mobile Toggle Button */}
+        {/* <div className="md:hidden fixed top-4 right-4 z-50"></div> */}
+        {/* <div className="md:hidden top-0 absolute">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 bg-lunarGray rounded-md w-fit"
+          >
+            <List size={32} weight="bold" />
+          </button>
+        </div> */}
+
         {/* Top Part */}
         <div className="flex flex-col">
           <img src={logo} alt="logo" />
