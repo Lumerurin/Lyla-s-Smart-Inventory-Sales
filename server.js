@@ -167,6 +167,7 @@ app.delete('/api/events/:id', (req, res) => {
   });
 });
 
+// Define a route to get all stock-in items
 app.get('/api/stockin', (req, res) => {
   // Make sure to properly format the SQL query with backticks
   const query = `
@@ -199,6 +200,22 @@ app.get('/api/stockin', (req, res) => {
     }
   });
 });
+
+// Define a route to update stock-in items
+app.put('/api/stockin/:id', (req, res) => {
+  const { id } = req.params;
+  const { Quantity, Price, ExpiryDate } = req.body;
+  const query = 'UPDATE stockin SET Quantity = ?, Price = ?, ExpiryDate = ? WHERE StockID = ?';
+  connection.query(query, [Quantity, Price, ExpiryDate, id], (err, results) => {
+    if (err) {
+      console.error('Error updating stock-in item:', err);
+      res.status(500).send('Server error');
+      return;
+    }
+    res.status(200).send('Stock-in item updated successfully');
+  });
+});
+
 
 app.get('/api/eventdetails', (req, res) => {
 
