@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Layout from "../layout";
-import { MagnifyingGlass, CaretRight, TrashSimple } from "@phosphor-icons/react";
+import {
+  MagnifyingGlass,
+  CaretRight,
+  TrashSimple,
+} from "@phosphor-icons/react";
 import AddEventModal from "./components/AddEventModal"; // Import the AddEventModal component
 import { Badge } from "./components/badge"; // Import the Badge component
 
@@ -50,9 +54,12 @@ const InventoryPage = () => {
     if (!eventToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/events/${eventToDelete.EventID}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/events/${eventToDelete.EventID}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         fetchEvents();
@@ -82,15 +89,15 @@ const InventoryPage = () => {
 
           <div className="flex items-center gap-2">
             <button
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="flex items-center gap-2 bg-blueSerenity text-white px-4 py-2 rounded-lg shadow-md hover:scale-105 transition-all duration-200 w-fit"
               onClick={() => setIsModalOpen(true)}
             >
               Add new Event
               <CaretRight size={20} />
             </button>
             <button
-              className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
-              onClick={() => navigate('/admin/inventory/event-inventory')}
+              className="flex items-center gap-2 bg-blueSerenity hover:scale-105 transition-all duration-200 text-white px-4 py-2 rounded-lg shadow-md  w-fit"
+              onClick={() => navigate("/admin/inventory/event-inventory")}
             >
               Manage StockIn/StockOut
               <CaretRight size={20} />
@@ -156,7 +163,10 @@ const InventoryPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-5 rounded-lg shadow-lg w-1/3">
             <h2 className="text-xl mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete the event "{eventToDelete.EventTitle}"?</p>
+            <p>
+              Are you sure you want to delete the event "
+              {eventToDelete.EventTitle}"?
+            </p>
             <div className="flex justify-end mt-4">
               <button
                 className="bg-gray-500 text-white px-4 py-2 rounded mr-2"

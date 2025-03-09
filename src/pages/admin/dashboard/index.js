@@ -5,10 +5,10 @@ import SalesSummary from "./components/salesSummary";
 import SalesOrder from "./components/salesOrder";
 
 const Dashboard = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -17,7 +17,7 @@ const Dashboard = () => {
   return (
     <Layout>
       <section className="h-full flex flex-col">
-        <h1 className="text-blueSerenity py-5">Hello, {username}</h1>
+        <h1 className="text-blueSerenity py-5">Hello, Angela{username}</h1>
         <div className="flex flex-col flex-1 gap-8 overflow-hidden">
           <SalesSummary />
           <div className="flex w-full gap-8 flex-1">
@@ -30,7 +30,24 @@ const Dashboard = () => {
             </div>
             {/* Right Section - Empty Container */}
             <div className="p-10 bg-solidWhite rounded-lg shadow-lg w-[30%] h-full">
-              <label>an empty container</label>
+              <h2>Best Selling Products</h2>
+
+              <div className="flex flex-col">
+                <div className="grid grid-cols-2">
+                  <span>Product Name</span>
+                  <span>Total Sales</span>
+                </div>
+
+                <div className="grid grid-cols-2">
+                  <span>Name</span>
+                  <span>P 0.00</span>
+                </div>
+
+                <div className="grid grid-cols-2">
+                  <span>Name</span>
+                  <span>P 0.00</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
