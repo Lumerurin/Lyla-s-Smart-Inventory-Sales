@@ -96,7 +96,7 @@ const CreateOrder = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem("username");
+    const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -104,77 +104,30 @@ const CreateOrder = () => {
 
   const data = {
     products: [
-      {
-        ProductID: 1,
-        ProductName: "Biscoff Cheesecake",
-        CategoryID: 1,
-        Price: 150,
-      },
+      { ProductID: 1, ProductName: "Biscoff Cheesecake", CategoryID: 1, Price: 150 },
       { ProductID: 2, ProductName: "Funfetti", CategoryID: 1, Price: 210 },
-      {
-        ProductID: 3,
-        ProductName: "Matcha with Cream Cheese",
-        CategoryID: 1,
-        Price: 180,
-      },
+      { ProductID: 3, ProductName: "Matcha with Cream Cheese", CategoryID: 1, Price: 180 },
       { ProductID: 4, ProductName: "Nutella Blast", CategoryID: 1, Price: 220 },
-      {
-        ProductID: 5,
-        ProductName: "Oreo Cheesecake",
-        CategoryID: 1,
-        Price: 240,
-      },
+      { ProductID: 5, ProductName: "Oreo Cheesecake", CategoryID: 1, Price: 240 },
       { ProductID: 6, ProductName: "Rocky Road", CategoryID: 1, Price: 200 },
       { ProductID: 7, ProductName: "Smores 2.0", CategoryID: 1, Price: 250 },
-      {
-        ProductID: 8,
-        ProductName: "Special Crinkles",
-        CategoryID: 1,
-        Price: 100,
-      },
+      { ProductID: 8, ProductName: "Special Crinkles", CategoryID: 1, Price: 100 },
       { ProductID: 9, ProductName: "Brownies", CategoryID: 2, Price: 150 },
       { ProductID: 10, ProductName: "Butterscotch", CategoryID: 2, Price: 170 },
       { ProductID: 11, ProductName: "Revel Bars", CategoryID: 2, Price: 190 },
-      {
-        ProductID: 12,
-        ProductName: "Red Velvet Cheesecake",
-        CategoryID: 2,
-        Price: 230,
-      },
-      {
-        ProductID: 13,
-        ProductName: "Ham and Cheese Empanada",
-        CategoryID: 3,
-        Price: 120,
-      },
-      {
-        ProductID: 14,
-        ProductName: "Small - Korean Cream Cheese Garlic Bread",
-        CategoryID: 3,
-        Price: 140,
-      },
-      {
-        ProductID: 15,
-        ProductName: "Medium - Korean Cream Cheese Garlic Bread",
-        CategoryID: 3,
-        Price: 160,
-      },
-      {
-        ProductID: 16,
-        ProductName: "Large - Korean Cream Cheese Garlic Bread",
-        CategoryID: 3,
-        Price: 180,
-      },
+      { ProductID: 12, ProductName: "Red Velvet Cheesecake", CategoryID: 2, Price: 230 },
+      { ProductID: 13, ProductName: "Ham and Cheese Empanada", CategoryID: 3, Price: 120 },
+      { ProductID: 14, ProductName: "Small - Korean Cream Cheese Garlic Bread", CategoryID: 3, Price: 140 },
+      { ProductID: 15, ProductName: "Medium - Korean Cream Cheese Garlic Bread", CategoryID: 3, Price: 160 },
+      { ProductID: 16, ProductName: "Large - Korean Cream Cheese Garlic Bread", CategoryID: 3, Price: 180 },
     ],
   };
 
   const addToCart = (product) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (item) => item.ProductID === product.ProductID
-      );
+      const existingItem = prevItems.find(item => item.ProductID === product.ProductID);
       if (existingItem) {
-        return prevItems.map((item) =>
+        return prevItems.map(item =>
           item.ProductID === product.ProductID
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -187,7 +140,7 @@ const CreateOrder = () => {
 
   const removeFromCart = (productID) => {
     setCartItems((prevItems) => {
-      return prevItems.filter((item) => item.ProductID !== productID);
+      return prevItems.filter(item => item.ProductID !== productID);
     });
   };
 
@@ -230,16 +183,18 @@ const CreateOrder = () => {
 
   const handleConfirmOrder = async () => {
     setIsProcessing(true);
-  
+    
     try {
+      // 1. Create customer record or get existing one
+      // For demo, we'll use a fixed customer ID
       const customerID = 6; // Using a customer from the database
-  
+      
       // 2. Get employee ID (assuming logged in user has ID stored)
       const employeeID = localStorage.getItem('employeeID') || 6; // Fallback to ID 6
-  
+      
       // 3. Get current schedule (using a fixed value for demo)
       const scheduleID = 6;
-  
+      
       // 4. Create transaction record
       const transactionResponse = await axios.post('/api/transactions', {
         CustomerID: customerID,
@@ -249,22 +204,22 @@ const CreateOrder = () => {
         TransactionDate: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
         CashPayment: amountPaidValue
       });
-  
+      
       const transactionID = transactionResponse.data.TransactionID;
-  
+      
       // 5. Create order details for each item
       const orderDetailsPromises = cartItems.map(item => {
         return axios.post('/api/orderdetails', {
           TransactionID: transactionID,
-          StockID: item.ProductID, // Using ProductID as StockID for demo
+          StockID: item.ProductID,  
           Subtotal: item.Price * item.quantity,
-          DiscountedPrice: item.Price, // No per-item discount in this UI
+          DiscountedPrice: item.Price,  
           Quantity: item.quantity
         });
       });
-  
+      
       await Promise.all(orderDetailsPromises);
-  
+      
       // 6. Create payment method record if using Digital Wallet
       if (paymentMethod === 'Digital Wallet') {
         await axios.post('/api/paymentmethod', {
@@ -273,17 +228,17 @@ const CreateOrder = () => {
           ReferenceNumber: referenceNumber
         });
       }
-  
+      
       // Success handling
       setSuccessMessage("Order completed successfully!");
       setModalOpen(false);
-  
+      
       // Reset cart and form
       setCartItems([]);
       setDiscount(0);
       setAmountPaid(0);
       setReferenceNumber('');
-  
+      
     } catch (error) {
       console.error("Error processing order:", error);
       setErrorMessage("Failed to process order. Please try again.");
@@ -337,7 +292,7 @@ const CreateOrder = () => {
         )}
 
         <div className="flex gap-8 h-full overflow-y-hidden">
-          <div className="bg-solidWhite flex rounded-lg shadow-lg p-5 max-h-full h-full flex-col overflow-y-scroll w-full">
+          <div className="bg-solidWhite flex rounded-lg shadow-lg p-5 max-h-full h-full flex-col overflow-y-scroll">
             {/* Cookies Section  */}
             <div className="w-full">
               <h2>Cookies</h2>
@@ -396,7 +351,7 @@ const CreateOrder = () => {
             </div>
           </div>
 
-          <div className="p-10 bg-solidWhite rounded-lg shadow-lg w-[35%] h-full flex flex-col">
+          <div className="p-10 bg-solidWhite rounded-lg shadow-lg w-[30%] h-full flex flex-col">
             <h2>Cart</h2>
             <Separator />
 
@@ -404,7 +359,7 @@ const CreateOrder = () => {
             <div className="w-full overflow-x-auto max-h-[25rem] flex-grow">
               <table className="w-full">
                 <thead>
-                  <tr className=" text-left">
+                  <tr className="bg-gray-100 text-left">
                     <th className="p-2">Product</th>
                     <th className="p-2 text-center">Qty</th>
                     <th className="p-2 text-right">Subtotal</th>
@@ -427,10 +382,10 @@ const CreateOrder = () => {
                       <td className="p-2 text-right">₱{(item.quantity * item.Price).toFixed(2)}</td>
                       <td className="p-2 text-right">
                         <button
-                          className="text-white bg-red/70 hover:bg-red text-sm px-2 py-1 rounded-lg w-fit"
+                          className="text-white bg-red-500 hover:bg-red-600 text-sm px-2 py-1 rounded w-20"
                           onClick={() => removeFromCart(item.ProductID)}
                         >
-                          <Trash size={32} />
+                          Remove
                         </button>
                       </td>
                     </tr>
