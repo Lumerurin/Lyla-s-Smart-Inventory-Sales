@@ -5,6 +5,7 @@ import {
   CaretLeft,
   MagnifyingGlass,
   PencilSimple,
+  Trash,
 } from "@phosphor-icons/react";
 
 const EventInventoryPage = () => {
@@ -15,18 +16,26 @@ const EventInventoryPage = () => {
   const [eventDetails, setEventDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteStockIn, setDeleteStockIn] = useState(null); // New state for deleting stock-in
   const [editStockIn, setEditStockIn] = useState(null); // New state for editing stock-in
+  const [newStockIn, setNewStockIn] = useState({
+    ProductID: '',
+    Quantity: '',
+    Price: '',
+    ExpiryDate: ''
+  });
+  const [showAddStockIn, setShowAddStockIn] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchData = () => {
     setLoading(true);
-    
+  
     const apiUrl = 'http://localhost:5000/api/stockin';
     const stockOutUrl = 'http://localhost:5000/api/stockout';
     const eventDetailsUrl = 'http://localhost:5000/api/eventdetails';
-    
+  
     console.log(`Fetching data from: ${apiUrl}`);
-    
+  
     fetch(apiUrl)
       .then(response => response.json())
       .then(data => {
@@ -34,7 +43,7 @@ const EventInventoryPage = () => {
         setStockInData(data);
       })
       .catch(error => console.error('Error fetching stock-in data:', error));
-
+  
     fetch(stockOutUrl)
       .then(response => response.json())
       .then(data => {
@@ -42,7 +51,7 @@ const EventInventoryPage = () => {
         setStockOutData(data);
       })
       .catch(error => console.error('Error fetching stock-out data:', error));
-
+  
     fetch(eventDetailsUrl)
       .then(response => response.json())
       .then(data => {
@@ -55,7 +64,34 @@ const EventInventoryPage = () => {
         setError(error.message);
         setLoading(false);
       });
+  };
+  
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleDeleteStockIn = (item) => {
+    setDeleteStockIn(item);
+  };
+  
+  const confirmDeleteStockIn = () => {
+    const apiUrl = `http://localhost:5000/api/stockin/${deleteStockIn.StockID}`;
+    fetch(apiUrl, {
+      method: 'DELETE',
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text(); // Change to response.text() to handle non-JSON response
+      })
+      .then(data => {
+        console.log('Stock-in item deleted:', data);
+        fetchData(); // Refresh data after deletion
+        setDeleteStockIn(null);
+      })
+      .catch(error => console.error('Error deleting stock-in item:', error));
+  };
 
   const handleEditStockIn = (item) => {
     setEditStockIn({
@@ -81,10 +117,34 @@ const EventInventoryPage = () => {
       })
       .then(data => {
         console.log('Stock-in item updated:', data);
-        setStockInData(prevData => prevData.map(item => item.StockID === editStockIn.StockID ? editStockIn : item));
+        fetchData(); // Refresh data after update
         setEditStockIn(null);
       })
       .catch(error => console.error('Error updating stock-in item:', error));
+  };
+
+  const handleAddStockIn = () => {
+    const apiUrl = 'http://localhost:5000/api/stockin';
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newStockIn),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text(); // Change to response.text() to handle non-JSON response
+      })
+      .then(data => {
+        console.log('Stock-in item added:', data);
+        fetchData(); // Refresh data after addition
+        setNewStockIn({ ProductID: '', Quantity: '', Price: '', ExpiryDate: '' });
+        setShowAddStockIn(false); // Close the popup after adding
+      })
+      .catch(error => console.error('Error adding stock-in item:', error));
   };
 
   const filteredStocks = stockInData.filter(
@@ -119,15 +179,8 @@ const EventInventoryPage = () => {
               </span>
               <span className="text-darkGray">{eventDetails.EventTitle}</span>
             </div>
-
-            <div className="w-full grid grid-cols-2">
-              <span className="font-semibold text-darkerGray text-lg">
-                Staff Assigned
-              </span>
-              <span className="text-darkGray">{eventDetails.StaffAssigned}</span>
-            </div>
           </div>
-
+        
           <div className="w-full grid gap-3">
             <div className="w-full grid grid-cols-2">
               <span className="font-semibold text-darkerGray text-lg">
@@ -190,7 +243,7 @@ const EventInventoryPage = () => {
           </div>
 
           <div className="w-full  flex items-center justify-between p-5 ">
-            <div className="w-full grid grid-cols-5">
+            <div className="w-full grid grid-cols-6">
               <span className="font-semibold text-lg text-darkerGray">
                 Product Name
               </span>
@@ -202,6 +255,10 @@ const EventInventoryPage = () => {
               </span>
               <span className="font-semibold text-lg text-darkerGray">
                 Price
+              </span>
+              <span className="font-semibold text-lg text-darkerGray">
+              </span>
+              <span className="font-semibold text-lg text-darkerGray">
               </span>
             </div>
           </div>
@@ -217,18 +274,25 @@ const EventInventoryPage = () => {
                       index % 2 === 0 ? "bg-gray-100" : "bg-white"
                     }`}
                   >
-                    <div className="w-full grid grid-cols-5 text-lg text-darkerGray">
+                    <div className="w-full grid grid-cols-6 text-lg text-darkerGray">
                       <span>{item.ProductName}</span>
                       <span>{item.Quantity}</span>
                       <span>{new Date(item.ExpiryDate).toLocaleDateString()}</span> {/* Format ExpiryDate */}
                       <span>₱{parseFloat(item.Price).toFixed(2)}</span> {/* Ensure Price is a number */}
                       <span>
-                        <PencilSimple
-                          size={24}
-                          className="text-blue-500 cursor-pointer"
-                          onClick={() => handleEditStockIn(item)}
-                        />
-                      </span>
+                      <PencilSimple
+                        size={24}
+                        className="text-blue-500 cursor-pointer"
+                        onClick={() => handleEditStockIn(item)}
+                      />
+                    </span>
+                    <span>
+                      <Trash
+                        size={24}
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => handleDeleteStockIn(item)}
+                      />
+                    </span>
                     </div>
                   </div>
                 ))
@@ -268,9 +332,12 @@ const EventInventoryPage = () => {
             )}
           </div>
           <div className="flex items-center w-full gap-3 py-5">
-            <div className="bg-blueSerenity border border-blueSerenity  w-[3rem] h-[3rem] items-center justify-center flex rounded-lg hover:cursor-pointer">
-              <span className="text-white">1</span>
-            </div>
+            <button
+              onClick={() => setShowAddStockIn(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              Add Stock In
+            </button>
           </div>
         </div>
 
@@ -317,6 +384,87 @@ const EventInventoryPage = () => {
                   className="bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {deleteStockIn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-5 rounded-lg">
+              <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+              <p>Are you sure you want to delete this stock-in item?</p>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => setDeleteStockIn(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteStockIn}
+                  className="bg-red-500 text-white px-4 py-2 rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showAddStockIn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-5 rounded-lg">
+              <h2 className="text-lg font-semibold mb-4">Add Stock In</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Product ID</label>
+                <input
+                  type="number"
+                  value={newStockIn.ProductID}
+                  onChange={(e) => setNewStockIn({ ...newStockIn, ProductID: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <input
+                  type="number"
+                  value={newStockIn.Quantity}
+                  onChange={(e) => setNewStockIn({ ...newStockIn, Quantity: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Price</label>
+                <input
+                  type="number"
+                  value={newStockIn.Price}
+                  onChange={(e) => setNewStockIn({ ...newStockIn, Price: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                <input
+                  type="date"
+                  value={newStockIn.ExpiryDate}
+                  onChange={(e) => setNewStockIn({ ...newStockIn, ExpiryDate: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowAddStockIn(false)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddStockIn}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                >
+                  Add
                 </button>
               </div>
             </div>

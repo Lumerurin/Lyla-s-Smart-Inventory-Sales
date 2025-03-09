@@ -311,6 +311,46 @@ app.post('/api/paymentmethod', async (req, res) => {
   }
 });
 
+// Define a route to update a stock-in item
+app.put('/api/stockin/:id', async (req, res) => {
+  const { id } = req.params;
+  const { Quantity, Price, ExpiryDate } = req.body;
+  const query = 'UPDATE stockin SET Quantity = ?, Price = ?, ExpiryDate = ? WHERE StockID = ?';
+  try {
+    await executeQuery(query, [Quantity, Price, ExpiryDate, id]);
+    res.status(200).send('Stock-in item updated successfully');
+  } catch (err) {
+    console.error('Error updating stock-in item:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+// Define a route to delete a stock-in item
+app.delete('/api/stockin/:id', async (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM stockin WHERE StockID = ?';
+  try {
+    await executeQuery(query, [id]);
+    res.status(200).send('Stock-in item deleted successfully');
+  } catch (err) {
+    console.error('Error deleting stock-in item:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+// Define a route to add a stock-in item
+app.post('/api/stockin', async (req, res) => {
+  const { ProductID, Quantity, Price, ExpiryDate } = req.body;
+  const query = 'INSERT INTO stockin (ProductID, Quantity, Price, ExpiryDate) VALUES (?, ?, ?, ?)';
+  try {
+    await executeQuery(query, [ProductID, Quantity, Price, ExpiryDate]);
+    res.status(201).send('Stock-in item added successfully');
+  } catch (err) {
+    console.error('Error adding stock-in item:', err);
+    res.status(500).send('Server error');
+  }
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
