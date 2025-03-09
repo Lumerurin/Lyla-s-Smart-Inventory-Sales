@@ -167,32 +167,41 @@ app.delete('/api/events/:id', async (req, res) => {
   }
 });
 
-// Define a route to get stock-in items
-app.get('/api/stockin', async (req, res) => {
+app.get('/api/stockin', (req, res) => {
+  // Make sure to properly format the SQL query with backticks
   const query = `
     SELECT s.StockID, s.Quantity, CAST(s.Price AS DECIMAL(10,2)) AS Price, 
            s.ExpiryDate, p.ProductName
     FROM stockin s
     JOIN products p ON s.ProductID = p.ProductID
   `;
-  try {
-    const results = await executeQuery(query);
-    const formattedResults = results.map(item => ({
-      StockID: item.StockID,
-      Quantity: item.Quantity,
-      Price: parseFloat(item.Price) || 0,
-      ExpiryDate: item.ExpiryDate,
-      ProductName: item.ProductName
-    }));
-    res.status(200).json(formattedResults);
-  } catch (err) {
-    console.error('Error fetching stock-in items:', err);
-    res.status(500).json({ error: 'Database error', details: err.message });
-  }
+  
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching stock-in items:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+    
+    try {
+      // Convert to a simple array of objects to avoid circular reference issues
+      const formattedResults = results.map(item => ({
+        StockID: item.StockID,
+        Quantity: item.Quantity,
+        Price: parseFloat(item.Price) || 0,
+        ExpiryDate: item.ExpiryDate,
+        ProductName: item.ProductName
+      }));
+      
+      return res.status(200).json(formattedResults);
+    } catch (formatErr) {
+      console.error('Error formatting results:', formatErr);
+      return res.status(500).json({ error: 'Data formatting error', details: formatErr.message });
+    }
+  });
 });
 
-// Define a route to get event details
-app.get('/api/eventdetails', async (req, res) => {
+app.get('/api/eventdetails', (req, res) => {
+
   const query = `
     SELECT e.EventID, e.EventTitle, et.EventCategory, 
            s.ScheduleID, s.ScheduleStartDate, s.ScheduleEndDate

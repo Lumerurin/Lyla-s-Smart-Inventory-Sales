@@ -15,6 +15,7 @@ const EventInventoryPage = () => {
   const [eventDetails, setEventDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editStockIn, setEditStockIn] = useState(null); // New state for editing stock-in
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,6 +56,36 @@ const EventInventoryPage = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleEditStockIn = (item) => {
+    setEditStockIn({
+      ...item,
+      ExpiryDate: new Date(item.ExpiryDate).toISOString().split('T')[0] // Format date to "yyyy-MM-dd"
+    });
+  };
+
+  const handleSaveStockIn = () => {
+    const apiUrl = `http://localhost:5000/api/stockin/${editStockIn.StockID}`;
+    fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editStockIn),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text(); // Change to response.text() to handle non-JSON response
+      })
+      .then(data => {
+        console.log('Stock-in item updated:', data);
+        setStockInData(prevData => prevData.map(item => item.StockID === editStockIn.StockID ? editStockIn : item));
+        setEditStockIn(null);
+      })
+      .catch(error => console.error('Error updating stock-in item:', error));
+  };
 
   const filteredStocks = stockInData.filter(
     (item) =>
@@ -159,15 +190,12 @@ const EventInventoryPage = () => {
           </div>
 
           <div className="w-full  flex items-center justify-between p-5 ">
-            <div className="w-full grid grid-cols-6">
+            <div className="w-full grid grid-cols-5">
               <span className="font-semibold text-lg text-darkerGray">
                 Product Name
               </span>
               <span className="font-semibold text-lg text-darkerGray">
                 Number of Stocks
-              </span>
-              <span className="font-semibold text-lg text-darkerGray">
-                Available Stocks
               </span>
               <span className="font-semibold text-lg text-darkerGray">
                 Expiry Date
@@ -189,9 +217,8 @@ const EventInventoryPage = () => {
                       index % 2 === 0 ? "bg-gray-100" : "bg-white"
                     }`}
                   >
-                    <div className="w-full grid grid-cols-6 text-lg text-darkerGray">
+                    <div className="w-full grid grid-cols-5 text-lg text-darkerGray">
                       <span>{item.ProductName}</span>
-                      <span>{item.Quantity}</span>
                       <span>{item.Quantity}</span>
                       <span>{new Date(item.ExpiryDate).toLocaleDateString()}</span> {/* Format ExpiryDate */}
                       <span>₱{parseFloat(item.Price).toFixed(2)}</span> {/* Ensure Price is a number */}
@@ -199,6 +226,7 @@ const EventInventoryPage = () => {
                         <PencilSimple
                           size={24}
                           className="text-blue-500 cursor-pointer"
+                          onClick={() => handleEditStockIn(item)}
                         />
                       </span>
                     </div>
@@ -218,10 +246,9 @@ const EventInventoryPage = () => {
                       index % 2 === 0 ? "bg-gray-100" : "bg-white"
                     }`}
                   >
-                    <div className="w-full grid grid-cols-6 text-lg text-darkerGray">
+                    <div className="w-full grid grid-cols-5 text-lg text-darkerGray">
                       <span>{item.ProductName}</span>
                       <span>{item.NumberOfStocks}</span>
-                      <span>{item.AvailableStocks}</span>
                       <span>{new Date(item.ExpiryDate).toLocaleDateString()}</span> {/* Format ExpiryDate */}
                       <span>₱{parseFloat(item.Price).toFixed(2)}</span> {/* Ensure Price is a number */}
                       <span>
@@ -246,6 +273,55 @@ const EventInventoryPage = () => {
             </div>
           </div>
         </div>
+
+        {editStockIn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-5 rounded-lg">
+              <h2 className="text-lg font-semibold mb-4">Edit Stock In</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <input
+                  type="number"
+                  value={editStockIn.Quantity}
+                  onChange={(e) => setEditStockIn({ ...editStockIn, Quantity: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Price</label>
+                <input
+                  type="number"
+                  value={editStockIn.Price}
+                  onChange={(e) => setEditStockIn({ ...editStockIn, Price: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                <input
+                  type="date"
+                  value={editStockIn.ExpiryDate}
+                  onChange={(e) => setEditStockIn({ ...editStockIn, ExpiryDate: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setEditStockIn(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveStockIn}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </Layout>
   );
