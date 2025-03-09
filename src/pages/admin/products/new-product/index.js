@@ -1,20 +1,13 @@
 import React, { useState } from "react";
 import Layout from "../../layout";
 import { CaretLeft } from "@phosphor-icons/react";
-import { UploadSimple } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const NewProduct = () => {
-  const [fileName, setFileName] = useState("");
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const navigate = useNavigate(); // Initialize useNavigate
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    setFileName(file ? file.name : "");
-  };
 
   const handleBackClick = () => {
     navigate('/admin/products'); // Navigate to the products page
@@ -99,21 +92,6 @@ const NewProduct = () => {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               required
-            />
-          </div>
-          <div className="w-full flex flex-col items-center border-2 border-dashed border-gray-400 p-5 rounded-lg cursor-pointer h-full">
-            <label
-              htmlFor="file-upload"
-              className="w-full h-[20rem] flex flex-col items-center justify-center text-gray-500 hover:text-gray-700 transition"
-            >
-              <UploadSimple size={32} className="mb-2" />
-              {fileName ? fileName : "Drag your file here or click to upload"}
-            </label>
-            <input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
             />
           </div>
 
